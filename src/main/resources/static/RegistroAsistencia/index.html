@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Control de Asistencia - Prototipo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Control de Asistencia</h1>
+  </header>
+
+  <!-- Página principal -->
+  <section class="section" id="inicio">
+    <h2>Bienvenido</h2>
+    <div class="botones">
+      <button class="btn-asistencia" onclick="navegar('registro')">Registrar Asistencia</button>
+      <button class="btn-admin" onclick="navegar('autenticacion')">Administración de Asistencia</button>
+    </div>
+  </section>
+
+  <!-- Registro de asistencia -->
+  <section class="section oculto" id="registro">
+      <h2>Registro de Asistencia</h2>
+
+      <div class="input-group">
+          <label for="cedula">Cédula del empleado</label>
+          <input type="text" id="cedula" placeholder="Ej: 123456789" required>
+      </div>
+
+      <div class="input-group">
+          <label for="metodo">Método de Registro</label>
+          <select id="metodo">
+              <option>Huella</option>
+              <option>Reconocimiento Facial</option>
+              <option>PIN</option>
+              <option>Tarjeta</option>
+              <option>Clave</option>
+          </select>
+      </div>
+
+      <div id="campo-extra" class="input-group oculto"></div>
+
+      <div class="input-group">
+          <label>Hora actual</label>
+          <input type="text" id="hora-actual" disabled>
+      </div>
+
+      <button id="btn-entrada" class="success">Registrar Entrada</button>
+      <button id="btn-salida" class="success">Registrar Salida</button>
+
+      <div class="log" id="registro-log">
+          <strong>Registros del día:</strong>
+          <ul id="lista-asistencias"></ul>
+      </div>
+
+      <button class="btn-volver" onclick="navegar('inicio')">⬅ Volver al inicio</button>
+  </section>
+
+
+  <!-- Autenticación -->
+  <section class="section oculto" id="autenticacion">
+    <h2>Pantalla de Autenticación</h2>
+    <div class="input-group">
+      <label for="usuario">Usuario</label>
+      <input type="text" id="usuario" placeholder="Ingresa tu usuario">
+    </div>
+    <div class="input-group">
+      <label for="contrasena">Contraseña</label>
+      <input type="password" id="contrasena" placeholder="Ingresa tu contraseña">
+    </div>
+    <button id="btn-login" class="success">Iniciar Sesión</button>
+    <button class="fingerprint-button" onclick="alert('Verificación de huella simulada')">Verificar con huella</button>
+    <button class="btn-volver" onclick="navegar('inicio')">⬅ Volver al inicio</button>
+  </section>
+
+  <!-- Errores -->
+  <section class="section oculto" id="errores">
+    <h2>Reporte de Errores</h2>
+    <div class="log">
+      <p><strong>Fecha:</strong> 15/06/2025<br><strong>Error:</strong> Fallo de conexión a base de datos</p>
+      <p><strong>Fecha:</strong> 14/06/2025<br><strong>Error:</strong> Usuario no encontrado</p>
+    </div>
+    <button class="error">Descargar Reporte</button>
+    <button class="btn-volver" onclick="navegar('administracion')">⬅ Volver al Menú</button>
+  </section>
+
+  <!-- Administración -->
+  <section class="section oculto" id="administracion">
+  <h2>Panel de Administración</h2>
+
+  <div class="admin-layout">
+    <!-- Menú lateral izquierdo -->
+    <ul id="menu-admin" class="menu-lateral">
+        <li onclick="mostrarAdminContenido('turnos')">🕒 Gestión de Turnos</li>
+        <li onclick="mostrarAdminContenido('alertas')">🚨 Alertas</li>
+      <li onclick="mostrarAdminContenido('registro')">📝 Registro de Asistencia</li>
+      <li onclick="mostrarAdminContenido('errores')">⚠️ Reporte de Errores</li>
+      <li onclick="abrirGestionUsuarios()">👥 Gestión de Usuarios</li>
+      <li onclick="mostrarAdminContenido('ajustes')">🔧 Ajustes del Sistema</li>
+      <li onclick="cerrarSesion()">🚪 Cerrar Sesión</li>
+    </ul>
+
+    <!-- Contenido derecho dinámico -->
+    <div id="contenido-admin" class="contenido-lateral">
+      <p>Selecciona una opción del menú para comenzar.</p>
+    </div>
+  </div>
+</section>
+
+
+  <!-- Ajustes -->
+  <section class="section oculto" id="ajustes">
+      <h2>Configuración y Ajustes</h2>
+
+      <!-- Tema -->
+      <div class="input-group">
+          <label for="tema">Tema del sistema</label>
+          <select id="tema">
+              <option value="claro">Claro</option>
+              <option value="oscuro">Oscuro</option>
+          </select>
+      </div>
+
+      <!-- Formato de hora -->
+      <div class="input-group">
+          <label for="formatoHora">Formato de Hora</label>
+          <select id="formatoHora">
+              <option value="12">12 horas</option>
+              <option value="24">24 horas</option>
+          </select>
+      </div>
+
+      <!-- Cambiar contraseña -->
+      <div class="input-group">
+          <label for="pass-actual">Contraseña actual</label>
+          <input type="password" id="pass-actual" placeholder="••••••">
+      </div>
+      <div class="input-group">
+          <label for="pass-nueva">Nueva contraseña</label>
+          <input type="password" id="pass-nueva" placeholder="••••••">
+      </div>
+      <div class="input-group">
+          <label for="pass-confirmar">Confirmar nueva contraseña</label>
+          <input type="password" id="pass-confirmar" placeholder="••••••">
+      </div>
+
+      <!-- Botones -->
+      <button class="success" onclick="guardarAjustes()">Guardar Cambios</button>
+      <button class="btn-volver" onclick="navegar('administracion')">⬅ Volver al Menú</button>
+      <button class="danger" onclick="logout()">Cerrar Sesión</button>
+  </section>
+
+  <footer>
+    &copy; 2025 Sistema de Asistencia. Todos los derechos reservados.
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
+
+

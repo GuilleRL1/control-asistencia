@@ -24,7 +24,7 @@ import com.techforge.control_asistencia.repository.TurnoRepository;
 
 @RestController
 @RequestMapping("/api/turnos")
-@CrossOrigin(origins = "http://localhost:63342") // permite peticiones desde tu frontend
+@CrossOrigin(origins = "http://localhost:63342") // permite peticiones desde el frontend
 public class TurnoController {
 
     @Autowired
@@ -33,7 +33,7 @@ public class TurnoController {
     @Autowired
     private EmpleadoRepository empleadoRepository;
 
-    // ✅ Listar todos los turnos
+    // Listar todos los turnos
     @GetMapping
 public List<TurnoResponseDTO> listarTurnos() {
     List<Turno> turnos = turnoRepository.findAll();
@@ -56,7 +56,7 @@ public List<TurnoResponseDTO> listarTurnos() {
     }).toList();
 }
 
-    // ✅ Crear/actualizar turno por cédula (solo si el empleado existe)
+    //  Crear/actualizar turno por cédula (solo si el empleado existe)
     @PostMapping
     public ResponseEntity<?> crearTurnoPorCedula(@RequestBody TurnoDTO dto) {
         if (dto.getCedula() == null || dto.getCedula().isBlank()
@@ -81,7 +81,7 @@ public List<TurnoResponseDTO> listarTurnos() {
         return ResponseEntity.ok(guardado);
     }
 
-    // ✅ Asignar/actualizar el mismo turno a todo el personal existente
+    // Asignar/actualizar el mismo turno a todo el personal existente
     @PostMapping("/masivo")
     public ResponseEntity<?> asignarTurnoMasivo(@RequestBody TurnoDTO dto) {
         if (dto.getHoraEntrada() == null || dto.getHoraSalida() == null) {
@@ -101,7 +101,7 @@ public List<TurnoResponseDTO> listarTurnos() {
         return ResponseEntity.ok("Turno asignado/actualizado a todo el personal existente");
     }
 
-    // ✅ Actualizar turno por ID (mantener compatibilidad con tu frontend actual)
+    // ✅ Actualizar turno por ID (mantener compatibilidad con el frontend actual)
     @PutMapping("/{id}")
     public ResponseEntity<Turno> actualizarTurno(@PathVariable Long id, @RequestBody Turno turno) {
         turno.setId(id);

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.techforge.control_asistencia.dto.TurnoDTO;
@@ -24,7 +25,8 @@ import com.techforge.control_asistencia.repository.TurnoRepository;
 
 @RestController
 @RequestMapping("/api/turnos")
-@CrossOrigin(origins = "http://localhost:63342") // permite peticiones desde tu frontend
+// ✅ Permitir peticiones desde tu frontend (Live Server y otros)
+@CrossOrigin(origins = {"http://127.0.0.1:5500", "http://localhost:63342"}, allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class TurnoController {
 
     @Autowired
@@ -35,26 +37,26 @@ public class TurnoController {
 
     // ✅ Listar todos los turnos
     @GetMapping
-public List<TurnoResponseDTO> listarTurnos() {
-    List<Turno> turnos = turnoRepository.findAll();
-    return turnos.stream().map(t -> {
-        return empleadoRepository.findById(t.getEmpleadoId())
-            .map(emp -> new TurnoResponseDTO(
-                t.getId(),
-                emp.getCedula(),
-                emp.getNombre(),
-                t.getHoraEntrada(),
-                t.getHoraSalida()
-            ))
-            .orElse(new TurnoResponseDTO(
-                t.getId(),
-                "N/A",
-                "Empleado no encontrado",
-                t.getHoraEntrada(),
-                t.getHoraSalida()
-            ));
-    }).toList();
-}
+    public List<TurnoResponseDTO> listarTurnos() {
+        List<Turno> turnos = turnoRepository.findAll();
+        return turnos.stream().map(t -> {
+            return empleadoRepository.findById(t.getEmpleadoId())
+                .map(emp -> new TurnoResponseDTO(
+                    t.getId(),
+                    emp.getCedula(),
+                    emp.getNombre(),
+                    t.getHoraEntrada(),
+                    t.getHoraSalida()
+                ))
+                .orElse(new TurnoResponseDTO(
+                    t.getId(),
+                    "N/A",
+                    "Empleado no encontrado",
+                    t.getHoraEntrada(),
+                    t.getHoraSalida()
+                ));
+        }).toList();
+    }
 
     // ✅ Crear/actualizar turno por cédula (solo si el empleado existe)
     @PostMapping

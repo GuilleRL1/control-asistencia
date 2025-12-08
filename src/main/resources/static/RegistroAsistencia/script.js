@@ -93,7 +93,7 @@ async function registrarAsistencia(tipo) {
     await cargarAsistenciasAdmin();
   } catch (error) {
     console.error(error);
-    alert("❌ No se pudo registrar la asistencia. Verifica la conexión al backend.");
+    alert("❌ No puedes registrar la salida ni la entrada mas de una vez en el mismo dia.");
   }
 }
 
@@ -133,8 +133,65 @@ async function cargarAsistencias() {
   }
 }
 
+// REPORTE DE HORAS Y ASISTENCIAS
+async function cargarReporteAsistencias() {
+  const inicio = document.getElementById("fechaInicio").value;
+  const fin = document.getElementById("fechaFin").value;
+
+  if (!inicio || !fin) {
+    alert("⚠️ Selecciona rango de fechas");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:8080/api/reportes/asistencias?inicio=${inicio}&fin=${fin}`);
+    if (!res.ok) throw new Error("Error al generar reporte");
+
+    const datos = await res.json();
+
+    const tbody = document.getElementById("tbody-reporte");
+    tbody.innerHTML = datos.map(r => `
+      <tr>
+        <td>${r.cedula}</td>
+        <td>${r.nombre}</td>
+        <td>${r.fecha}</td>
+        <td>${formatearHora(r.horaEntrada)}</td>
+        <td>${formatearHora(r.horaSalida)}</td>
+        <td>${r.horasTrabajadas}</td>
+      </tr>
+    `).join("");
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+}
+
+// ✅ Exportar a CSV (simple)
+function exportarCSV() {
+  const filas = document.querySelectorAll("#tbody-reporte tr");
+  if (filas.length === 0) {
+    alert("⚠️ No hay datos para exportar");
+    return;
+  }
+
+  let csv = "Cédula,Nombre,Fecha,Hora Entrada,Hora Salida,Horas Trabajadas\n";
+  filas.forEach(tr => {
+    const cols = tr.querySelectorAll("td");
+    const fila = Array.from(cols).map(td => td.innerText).join(",");
+    csv += fila + "\n";
+  });
+
+  // Crear archivo descargable
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "reporte_asistencias.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // AJUSTES
-function guardarAjustes() {
+async function guardarAjustes() {
   const tema = document.getElementById("tema").value;
   const formatoHora = document.getElementById("formatoHora").value;
 
@@ -142,26 +199,77 @@ function guardarAjustes() {
   localStorage.setItem("tema", tema);
   localStorage.setItem("formatoHora", formatoHora);
 
-  alert("✅ Ajustes guardados");
-
   // Aplicar cambios inmediatos
   aplicarTema(tema);
   aplicarFormatoHora(formatoHora);
+
+  // ✅ Cambio de contraseña
+  const actual = document.getElementById("pass-actual").value.trim();
+  const nueva = document.getElementById("pass-nueva").value.trim();
+  const confirmar = document.getElementById("pass-confirmar").value.trim();
+  const usuario = sessionStorage.getItem("usuarioLogueado"); // usuario logueado en login
+
+  if (actual || nueva || confirmar) {
+    if (!actual || !nueva || !confirmar) {
+      alert("⚠️ Completa todos los campos de contraseña.");
+      return;
+    }
+    if (nueva !== confirmar) {
+      alert("⚠️ La nueva contraseña y la confirmación no coinciden.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/auth/password/${usuario}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actual, nueva })
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+      }
+
+      const msg = await res.text();
+      alert("✅ " + msg);
+
+      // limpiar campos
+      document.getElementById("pass-actual").value = "";
+      document.getElementById("pass-nueva").value = "";
+      document.getElementById("pass-confirmar").value = "";
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
+  } else {
+    alert("✅ Ajustes guardados (tema y formato de hora)");
+  }
+}
+
+// ✅ Función global para formatear horas según ajustes
+function formatearHora(horaISO) {
+  const formato = localStorage.getItem("formatoHora") || "24";
+  const fecha = new Date("1970-01-01T" + horaISO); // si recibes "HH:mm" del backend
+
+  if (formato === "12") {
+    return fecha.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: true });
+  } else {
+    return fecha.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+  }
 }
 
 function aplicarTema(tema) {
-  document.body.className = tema === "oscuro" ? "tema-oscuro" : "tema-claro";
-  // Reflejar en el select
+  document.body.classList.remove("tema-claro", "tema-oscuro");
+  document.body.classList.add(tema === "oscuro" ? "tema-oscuro" : "tema-claro");
+
   const selectTema = document.getElementById("tema");
   if (selectTema) selectTema.value = tema;
 }
 
 function aplicarFormatoHora(formato) {
-  // Reflejar en el select
   const selectFormato = document.getElementById("formatoHora");
   if (selectFormato) selectFormato.value = formato;
 
-  // Refrescar el reloj si existe
   if (typeof actualizarHora === "function") {
     actualizarHora();
   }
@@ -182,7 +290,6 @@ function cerrarSesion() {
   navegar("inicio");
   alert("🚪 Sesión cerrada");
 }
-
 
 // 🧭 Menú Administración
 function mostrarAdminContenido(seccion) {
@@ -464,6 +571,62 @@ async function eliminarEmpleado(cedula) {
     alert("❌ No se pudo eliminar el empleado");
   }
 }
+
+//FUNCION EDITAR EMPLEADO
+async function editarEmpleado(cedula) {
+  const cont = document.getElementById("contenido-admin");
+
+  try {
+    // Traer datos del empleado desde el backend
+    const res = await fetch(`${API_EMPLEADOS}/${cedula}`);
+    if (!res.ok) throw new Error("No se pudo cargar el empleado");
+
+    const empleado = await res.json();
+
+    // Mostrar formulario con datos cargados
+    cont.innerHTML = `
+      <h3>Editar Empleado</h3>
+      <div class="input-group"><label>Cédula</label><input type="text" id="cedula-empleado" value="${empleado.cedula}" disabled></div>
+      <div class="input-group"><label>Nombre</label><input type="text" id="nombre-empleado" value="${empleado.nombre}"></div>
+      <div class="input-group"><label>Teléfono</label><input type="text" id="telefono-empleado" value="${empleado.telefono || ''}"></div>
+      <button type="button" class="success" onclick="actualizarEmpleado('${empleado.cedula}')">💾 Guardar Cambios</button>
+      <button class="btn-volver" onclick="abrirGestionUsuarios()">⬅ Volver</button>
+    `;
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+}
+
+//FUNCION PARA ACTUALIZAR EMPLEADO
+async function actualizarEmpleado(cedulaRuta) {
+  const cedula = document.getElementById("cedula-empleado").value.trim(); // del input
+  const nombre = document.getElementById("nombre-empleado").value.trim();
+  const telefono = document.getElementById("telefono-empleado").value.trim();
+
+  if (!cedula || !nombre) {
+    alert("⚠️ Cédula y nombre son obligatorios");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_EMPLEADOS}/${cedulaRuta}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cedula, nombre, telefono }) // enviar cédula también
+    });
+
+    if (!res.ok) {
+      const errorMsg = await res.text();
+      throw new Error(errorMsg);
+    }
+
+    alert("✅ Empleado actualizado correctamente");
+    abrirGestionUsuarios();
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+}
+
 // Función de cargar alertas
 async function cargarAlertas() {
   const cont = document.getElementById("contenido-admin");

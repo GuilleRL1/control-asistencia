@@ -196,3 +196,32 @@ footer {
 .alerta.incumplimiento {
   background-color: #e74c3c; /* rojo */
 }
+
+/* Tema claro (por defecto) */
+body.tema-claro {
+  --color-primario: #0056b3;
+  --color-exito: #28a745;
+  --color-error: #dc3545;
+  --color-fondo: #f4f4f4;
+  background-color: var(--color-fondo);
+  color: #000;
+}
+
+/* Tema oscuro */
+body.tema-oscuro {
+  --color-primario: #66b2ff;
+  --color-exito: #5cd65c;
+  --color-error: #ff6666;
+  --color-fondo: #121212;
+  background-color: var(--color-fondo);
+  color: #eee;
+}
+
+body.tema-oscuro header {
+  background-color: var(--color-primario);
+  color: #fff;
+}
+
+body.tema-oscuro .contenido-lateral {
+  background: #1e1e1e;
+}

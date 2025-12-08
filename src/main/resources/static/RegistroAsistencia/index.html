@@ -35,11 +35,10 @@
       <div class="input-group">
           <label for="metodo">Método de Registro</label>
           <select id="metodo">
-              <option>Huella</option>
+
               <option>Reconocimiento Facial</option>
-              <option>PIN</option>
-              <option>Tarjeta</option>
-              <option>Clave</option>
+              <option>Huella Dactilar</option>
+              
           </select>
       </div>
 
@@ -89,6 +88,40 @@
     <button class="btn-volver" onclick="navegar('administracion')">⬅ Volver al Menú</button>
   </section>
 
+  <!-- REPORTE DE ASISTENCIA -->
+
+  <section class="section oculto" id="reportes">
+  <h2>Reporte de Asistencias</h2>
+<button class="btn-admin" onclick="navegar('administracion')">⬅ Volver</button>
+  <!-- Filtros -->
+  <div class="input-group">
+    <label for="fechaInicio">Fecha inicio</label>
+    <input type="date" id="fechaInicio">
+  </div>
+  <div class="input-group">
+    <label for="fechaFin">Fecha fin</label>
+    <input type="date" id="fechaFin">
+  </div>
+
+  <button class="success" onclick="cargarReporteAsistencias()">Generar Reporte</button>
+  <button class="btn-admin" onclick="exportarCSV()">⬇ Exportar CSV</button>
+
+  <!-- Tabla -->
+  <table border="1" style="margin-top:1rem; width:100%;">
+    <thead>
+      <tr>
+        <th>Cédula</th>
+        <th>Nombre</th>
+        <th>Fecha</th>
+        <th>Hora Entrada</th>
+        <th>Hora Salida</th>
+        <th>Horas Trabajadas</th>
+      </tr>
+    </thead>
+    <tbody id="tbody-reporte"></tbody>
+  </table>
+</section>
+
   <!-- Administración -->
   <section class="section oculto" id="administracion">
   <h2>Panel de Administración</h2>
@@ -101,7 +134,9 @@
       <li onclick="mostrarAdminContenido('registro')">📝 Registro de Asistencia</li>
       <li onclick="mostrarAdminContenido('errores')">⚠️ Reporte de Errores</li>
       <li onclick="abrirGestionUsuarios()">👥 Gestión de Usuarios</li>
+      <li onclick="navegar('reportes')">📊 Reporte de Asistencias</li>
       <li onclick="mostrarAdminContenido('ajustes')">🔧 Ajustes del Sistema</li>
+      
       <li onclick="cerrarSesion()">🚪 Cerrar Sesión</li>
     </ul>
 
@@ -112,6 +147,7 @@
   </div>
 </section>
 
+<input type="text" id="cedula-empleado" value="..." readonly>
 
   <!-- Ajustes -->
   <section class="section oculto" id="ajustes">

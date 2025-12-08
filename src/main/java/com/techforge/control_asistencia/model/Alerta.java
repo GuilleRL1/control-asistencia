@@ -1,7 +1,14 @@
 package com.techforge.control_asistencia.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "alertas")
@@ -21,6 +28,18 @@ public class Alerta {
     private String detalle;
 
     private LocalDateTime fecha;
+
+    // --- Constructores ---
+    public Alerta() {}
+
+    // ✅ Constructor para crear alertas rápidas desde AsistenciaController
+    public Alerta(Long empleadoId, String nombreEmpleado, TipoAlerta tipo, String detalle) {
+        this.empleadoId = empleadoId;
+        this.nombreEmpleado = nombreEmpleado;
+        this.tipo = tipo;
+        this.detalle = detalle;
+        this.fecha = LocalDateTime.now();
+    }
 
     // --- Getters y Setters ---
     public Long getId() { return id; }

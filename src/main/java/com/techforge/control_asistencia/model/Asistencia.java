@@ -1,7 +1,16 @@
 package com.techforge.control_asistencia.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "asistencias")
@@ -11,14 +20,18 @@ public class Asistencia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Relación con empleado
     @ManyToOne(optional = false)
     @JoinColumn(name = "empleado_id")
     private Empleado empleado;
 
-    @Column(name = "fecha_hora")
+    // Fecha y hora del registro
+    @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora;
 
-    private String tipo; // "entrada" o "salida"
+    // Tipo de registro: "entrada" o "salida"
+    @Column(nullable = false)
+    private String tipo;
 
     public Asistencia() {}
 
@@ -28,6 +41,7 @@ public class Asistencia {
         this.tipo = tipo;
     }
 
+    // Asignar fecha/hora actual si no se envía
     @PrePersist
     public void prePersist() {
         if (this.fechaHora == null) {
@@ -35,7 +49,7 @@ public class Asistencia {
         }
     }
 
-    // getters y setters
+    // Getters y setters
     public Long getId() { return id; }
     public Empleado getEmpleado() { return empleado; }
     public void setEmpleado(Empleado empleado) { this.empleado = empleado; }

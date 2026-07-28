@@ -25,12 +25,12 @@ import com.techforge.control_asistencia.repository.TurnoRepository;
 
 @RestController
 @RequestMapping("/api/turnos")
-<<<<<<< HEAD
 // ✅ Permitir peticiones desde tu frontend (Live Server y otros)
-@CrossOrigin(origins = {"http://127.0.0.1:5500", "http://localhost:63342"}, allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
-=======
-@CrossOrigin(origins = "http://localhost:63342") // permite peticiones desde el frontend
->>>>>>> ea4a77c3c406d7538a1f36d488995751cda8452f
+@CrossOrigin(
+    origins = {"http://127.0.0.1:5500", "http://localhost:63342"},
+    allowedHeaders = "*",
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}
+)
 public class TurnoController {
 
     @Autowired
@@ -62,7 +62,7 @@ public class TurnoController {
         }).toList();
     }
 
-    //  Crear/actualizar turno por cédula (solo si el empleado existe)
+    // Crear/actualizar turno por cédula (solo si el empleado existe)
     @PostMapping
     public ResponseEntity<?> crearTurnoPorCedula(@RequestBody TurnoDTO dto) {
         if (dto.getCedula() == null || dto.getCedula().isBlank()
@@ -107,7 +107,7 @@ public class TurnoController {
         return ResponseEntity.ok("Turno asignado/actualizado a todo el personal existente");
     }
 
-    // ✅ Actualizar turno por ID (mantener compatibilidad con el frontend actual)
+    // Actualizar turno por ID
     @PutMapping("/{id}")
     public ResponseEntity<Turno> actualizarTurno(@PathVariable Long id, @RequestBody Turno turno) {
         turno.setId(id);

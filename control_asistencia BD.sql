@@ -1,3 +1,5 @@
+CREATE DATABASE control_asistencia;
+
 USE control_asistencia;
 
 -- Eliminar primero las tablas hijas (dependientes de empleados)

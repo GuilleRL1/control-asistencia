@@ -114,6 +114,24 @@ footer {
   margin-top: 1rem;
   cursor: pointer;
 }
+.recuperar-link {
+  text-align: center;
+  margin-top: 0.75rem;
+}
+.recuperar-link a {
+  color: var(--color-primario);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.log code {
+  background: #eee;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  word-break: break-all;
+}
+body.tema-oscuro .log code {
+  background: #333;
+}
 .menu-lista {
   list-style: none;
   padding: 0;

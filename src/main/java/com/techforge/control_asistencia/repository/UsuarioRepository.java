@@ -6,4 +6,6 @@ import com.techforge.control_asistencia.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Usuario findByUsuario(String usuario);
+    Usuario findByEmail(String email);
+    Usuario findByResetToken(String resetToken);
 }

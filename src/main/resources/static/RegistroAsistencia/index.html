@@ -74,7 +74,45 @@
     </div>
     <button id="btn-login" class="success">Iniciar Sesión</button>
     <button class="fingerprint-button" onclick="alert('Verificación de huella simulada')">Verificar con huella</button>
+    <p class="recuperar-link"><a onclick="navegar('recuperar')">¿Olvidaste tu contraseña?</a></p>
     <button class="btn-volver" onclick="navegar('inicio')">⬅ Volver al inicio</button>
+  </section>
+
+  <!-- Recuperación de contraseña -->
+  <section class="section oculto" id="recuperar">
+    <h2>Recuperar Contraseña</h2>
+
+    <!-- Paso 1: solicitar enlace de recuperación -->
+    <div id="recuperar-paso1">
+      <p>Ingresa el email de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.</p>
+      <div class="input-group">
+        <label for="recuperar-email">Email</label>
+        <input type="email" id="recuperar-email" placeholder="tucorreo@ejemplo.com">
+      </div>
+      <button class="success" onclick="solicitarRecuperacion()">Enviar enlace de recuperación</button>
+    </div>
+
+    <!-- Resultado de la solicitud (email simulado) -->
+    <div id="recuperar-resultado" class="log oculto"></div>
+
+    <!-- Paso 2: restablecer con token -->
+    <div id="recuperar-paso2" class="oculto">
+      <div class="input-group">
+        <label for="recuperar-token">Código / Token de recuperación</label>
+        <input type="text" id="recuperar-token" placeholder="Pega aquí el token recibido">
+      </div>
+      <div class="input-group">
+        <label for="recuperar-nueva">Nueva contraseña</label>
+        <input type="password" id="recuperar-nueva" placeholder="••••••">
+      </div>
+      <div class="input-group">
+        <label for="recuperar-confirmar">Confirmar nueva contraseña</label>
+        <input type="password" id="recuperar-confirmar" placeholder="••••••">
+      </div>
+      <button class="success" onclick="restablecerContrasena()">Restablecer contraseña</button>
+    </div>
+
+    <button class="btn-volver" onclick="navegar('autenticacion')">⬅ Volver al inicio de sesión</button>
   </section>
 
   <!-- Errores -->

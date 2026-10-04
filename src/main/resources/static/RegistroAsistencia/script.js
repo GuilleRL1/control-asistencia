@@ -665,3 +665,107 @@ async function cargarAlertas() {
     cont.innerHTML = `<p class="error">❌ ${err.message}</p>`;
   }
 }
+
+// 🔑 RECUPERACIÓN DE CONTRASEÑA
+
+// Paso 1: solicitar enlace de recuperación por email
+async function solicitarRecuperacion() {
+  const email = document.getElementById("recuperar-email").value.trim();
+  if (!email) {
+    alert("⚠️ Ingresa tu email");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_AUTH}/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = await res.text();
+    }
+
+    if (!res.ok) {
+      throw new Error(typeof data === "string" ? data : (data.message || "Error al solicitar recuperación"));
+    }
+
+    const resultado = document.getElementById("recuperar-resultado");
+    resultado.classList.remove("oculto");
+
+    if (data.resetToken) {
+      // Para la demo (sin SMTP), mostramos el token/enlace que "llegaría" por email
+      document.getElementById("recuperar-token").value = data.resetToken;
+      resultado.innerHTML = `
+        <strong>📧 Email simulado:</strong><br>
+        Se generó un enlace de recuperación para <strong>${email}</strong>.<br>
+        <small>En producción este enlace se enviaría por correo. Para la demo, se muestra aquí:</small><br>
+        <a href="${data.resetLink}" target="_blank">${data.resetLink}</a><br><br>
+        <strong>Token:</strong> <code>${data.resetToken}</code>
+      `;
+      document.getElementById("recuperar-paso2").classList.remove("oculto");
+    } else {
+      resultado.innerHTML = `<strong>${data.message || "Si el email está registrado, recibirás un enlace."}</strong>`;
+    }
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+}
+
+// Paso 2: restablecer la contraseña con el token recibido
+async function restablecerContrasena() {
+  const token = document.getElementById("recuperar-token").value.trim();
+  const nueva = document.getElementById("recuperar-nueva").value.trim();
+  const confirmar = document.getElementById("recuperar-confirmar").value.trim();
+
+  if (!token || !nueva || !confirmar) {
+    alert("⚠️ Completa todos los campos");
+    return;
+  }
+  if (nueva !== confirmar) {
+    alert("⚠️ La nueva contraseña y la confirmación no coinciden");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_AUTH}/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, nueva })
+    });
+
+    const msg = await res.text();
+    if (!res.ok) throw new Error(msg || "Error al restablecer la contraseña");
+
+    alert("✅ " + msg);
+
+    // Limpiar el formulario y volver al login
+    document.getElementById("recuperar-email").value = "";
+    document.getElementById("recuperar-token").value = "";
+    document.getElementById("recuperar-nueva").value = "";
+    document.getElementById("recuperar-confirmar").value = "";
+    document.getElementById("recuperar-resultado").classList.add("oculto");
+    document.getElementById("recuperar-paso2").classList.add("oculto");
+    navegar("autenticacion");
+  } catch (err) {
+    alert("❌ " + err.message);
+  }
+}
+
+// 📥 Leer el enlace de recuperación desde la URL (ej. #recuperar?token=...)
+document.addEventListener("DOMContentLoaded", () => {
+  const hash = window.location.hash || "";
+  if (!hash.startsWith("#recuperar")) return;
+
+  const token = new URLSearchParams(hash.split("?")[1] || "").get("token");
+  navegar("recuperar");
+
+  if (token) {
+    document.getElementById("recuperar-token").value = token;
+    document.getElementById("recuperar-paso2").classList.remove("oculto");
+  }
+});

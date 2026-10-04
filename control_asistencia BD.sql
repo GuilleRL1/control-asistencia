@@ -34,7 +34,10 @@ CREATE TABLE asistencias (
 CREATE TABLE usuarios (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     usuario VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    reset_token VARCHAR(255),
+    reset_token_expiry DATETIME
 );
 
 -- Crear tabla alertas
@@ -58,10 +61,18 @@ CREATE TABLE turnos (
 
 
 -- Insertar usuario admin con contraseña "admin123"
--- Si ya existe, actualiza la contraseña
-INSERT INTO usuarios (usuario, password)
+-- Si ya existe, actualiza la contraseña y el email
+INSERT INTO usuarios (usuario, password, email)
 VALUES (
   'admin',
-  '$2a$10$JxarsGFQhszzh3FGHxeoveHvRrK7xyajQO4wynZrFk8ketbOmbMIC'
+  '$2a$10$JxarsGFQhszzh3FGHxeoveHvRrK7xyajQO4wynZrFk8ketbOmbMIC',
+  'admin@techforge.com'
 )
-ON DUPLICATE KEY UPDATE password = VALUES(password);
+ON DUPLICATE KEY UPDATE password = VALUES(password), email = VALUES(email);
+
+-- Si tienes una base de datos existente creada antes de añadir la recuperación
+-- de contraseña, ejecuta estas sentencias para migrarla:
+-- ALTER TABLE usuarios ADD COLUMN email VARCHAR(100) UNIQUE;
+-- ALTER TABLE usuarios ADD COLUMN reset_token VARCHAR(255);
+-- ALTER TABLE usuarios ADD COLUMN reset_token_expiry DATETIME;
+-- UPDATE usuarios SET email = 'admin@techforge.com' WHERE usuario = 'admin';

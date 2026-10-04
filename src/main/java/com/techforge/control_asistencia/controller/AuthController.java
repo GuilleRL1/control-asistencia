@@ -1,10 +1,13 @@
 package com.techforge.control_asistencia.controller;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +27,8 @@ import com.techforge.control_asistencia.repository.UsuarioRepository;
 @CrossOrigin(origins = "*")
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     private UsuarioRepository usuarioRepo;
 
@@ -35,7 +40,7 @@ public class AuthController {
 
     // ✅ Login: valida usuario y contraseña
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Usuario login) {
+    public ResponseEntity<Object> login(@RequestBody Usuario login) {
         Usuario u = usuarioRepo.findByUsuario(login.getUsuario());
         if (u == null) return ResponseEntity.status(401).body("Usuario no encontrado");
         if (!passwordEncoder.matches(login.getPassword(), u.getPassword())) {
@@ -46,7 +51,7 @@ public class AuthController {
 
     // ✅ Registrar nuevo usuario
     @PostMapping("/register")
-    public ResponseEntity<?> registrar(@RequestBody Usuario nuevo) {
+    public ResponseEntity<Object> registrar(@RequestBody Usuario nuevo) {
         if (nuevo.getUsuario() == null || nuevo.getUsuario().isBlank() ||
             nuevo.getPassword() == null || nuevo.getPassword().isBlank()) {
             return ResponseEntity.badRequest().body("Usuario y contraseña son obligatorios");
@@ -76,7 +81,7 @@ public class AuthController {
 
     // ✅ Solicitar recuperación de contraseña (genera y "envía" el enlace)
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDTO dto) {
+    public ResponseEntity<Object> forgotPassword(@RequestBody ForgotPasswordDTO dto) {
         String email = dto == null ? null : dto.email;
         if (email == null || email.isBlank()) {
             return ResponseEntity.badRequest().body("El email es obligatorio");
@@ -93,17 +98,13 @@ public class AuthController {
         // Generar token de recuperación y su expiración
         String token = UUID.randomUUID().toString();
         u.setResetToken(token);
-        u.setResetTokenExpiry(LocalDateTime.now().plusMinutes(TOKEN_VALIDITY_MINUTES));
+        u.setResetTokenExpiry(LocalDateTime.now(ZoneId.systemDefault()).plusMinutes(TOKEN_VALIDITY_MINUTES));
         usuarioRepo.save(u);
 
         String resetLink = "http://localhost:8080/RegistroAsistencia/index.html#recuperar?token=" + token;
 
         // 📧 Simulación de envío de email (no hay SMTP configurado en el proyecto)
-        System.out.println("===== SIMULACIÓN DE EMAIL DE RECUPERACIÓN =====");
-        System.out.println("Para: " + email);
-        System.out.println("Asunto: Recuperación de contraseña");
-        System.out.println("Enlace: " + resetLink);
-        System.out.println("===============================================");
+        log.info("SIMULACIÓN DE EMAIL DE RECUPERACIÓN -> Para: {} | Enlace: {}", email, resetLink);
 
         Map<String, String> resp = new HashMap<>();
         resp.put("message", "Enlace de recuperación generado (email simulado).");
@@ -120,7 +121,7 @@ public class AuthController {
 
     // ✅ Restablecer contraseña usando el token de recuperación
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO dto) {
+    public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordDTO dto) {
         if (dto.token == null || dto.token.isBlank()) {
             return ResponseEntity.badRequest().body("El token es obligatorio");
         }
@@ -130,7 +131,7 @@ public class AuthController {
 
         Usuario u = usuarioRepo.findByResetToken(dto.token.trim());
         if (u == null || u.getResetTokenExpiry() == null
-                || u.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+                || u.getResetTokenExpiry().isBefore(LocalDateTime.now(ZoneId.systemDefault()))) {
             return ResponseEntity.status(400).body("Token inválido o expirado");
         }
 
@@ -150,7 +151,7 @@ public class AuthController {
 
     // ✅ Cambiar contraseña
     @PutMapping("/password/{usuario}")
-    public ResponseEntity<?> cambiarPassword(@PathVariable String usuario, @RequestBody PasswordDTO dto) {
+    public ResponseEntity<Object> cambiarPassword(@PathVariable String usuario, @RequestBody PasswordDTO dto) {
         if (dto.nueva == null || dto.nueva.isBlank()) {
             return ResponseEntity.badRequest().body("La nueva contraseña no puede estar vacía");
         }

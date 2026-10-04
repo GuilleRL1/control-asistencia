@@ -1,6 +1,7 @@
 package com.techforge.control_asistencia.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class AsistenciaService {
             alerta.setTipo(TipoAlerta.TARDANZA);
             alerta.setDetalle("Llegó a las " + horaEntradaReal.toLocalTime() +
                               ", turno " + turno.getHoraEntrada());
-            alerta.setFecha(LocalDateTime.now());
+            alerta.setFecha(LocalDateTime.now(ZoneId.systemDefault()));
             alertaRepository.save(alerta);
         }
     }
@@ -45,7 +46,7 @@ public class AsistenciaService {
             alerta.setTipo(TipoAlerta.SALIDA_TEMPRANA);
             alerta.setDetalle("Salió a las " + horaSalidaReal.toLocalTime() +
                               ", turno " + turno.getHoraSalida());
-            alerta.setFecha(LocalDateTime.now());
+            alerta.setFecha(LocalDateTime.now(ZoneId.systemDefault()));
             alertaRepository.save(alerta);
         }
     }

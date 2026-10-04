@@ -1,6 +1,7 @@
 package com.techforge.control_asistencia.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,7 +39,7 @@ public class Alerta {
         this.nombreEmpleado = nombreEmpleado;
         this.tipo = tipo;
         this.detalle = detalle;
-        this.fecha = LocalDateTime.now();
+        this.fecha = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     // --- Getters y Setters ---

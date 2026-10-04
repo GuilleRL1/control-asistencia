@@ -1,6 +1,7 @@
 package com.techforge.control_asistencia.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,7 +46,7 @@ public class Asistencia {
     @PrePersist
     public void prePersist() {
         if (this.fechaHora == null) {
-            this.fechaHora = LocalDateTime.now();
+            this.fechaHora = LocalDateTime.now(ZoneId.systemDefault());
         }
     }
 
@@ -58,4 +59,3 @@ public class Asistencia {
     public String getTipo() { return tipo; }
     public void setTipo(String tipo) { this.tipo = tipo; }
 }
-

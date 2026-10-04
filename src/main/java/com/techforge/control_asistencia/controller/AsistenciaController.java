@@ -1,6 +1,8 @@
 package com.techforge.control_asistencia.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,13 +45,12 @@ public class AsistenciaController {
 
     // 🟢 Registrar asistencia por cédula y tipo (entrada/salida)
     @PostMapping("/{cedula}/{tipo}")
-    public ResponseEntity<?> registrar(@PathVariable String cedula, @PathVariable String tipo) {
+    public ResponseEntity<Object> registrar(@PathVariable String cedula, @PathVariable String tipo) {
         Optional<Empleado> empleadoOpt = empleadoRepo.findByCedula(cedula);
 
         if (empleadoOpt.isEmpty()) {
             return ResponseEntity.status(404).body(Map.of("error", "Empleado no encontrado"));
         }
-
         if (!("entrada".equalsIgnoreCase(tipo) || "salida".equalsIgnoreCase(tipo))) {
             return ResponseEntity.badRequest().body(Map.of("error", "El tipo debe ser 'entrada' o 'salida'"));
         }
@@ -57,15 +58,13 @@ public class AsistenciaController {
         Empleado empleado = empleadoOpt.get();
 
         // ✅ Obtener asistencias del día actual
-        LocalDateTime inicioDia = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime inicioDia = LocalDate.now(ZoneId.systemDefault()).atStartOfDay();
         LocalDateTime finDia = inicioDia.plusDays(1);
         List<Asistencia> registrosDia = asistenciaRepo.findByEmpleadoAndFechaHoraBetween(empleado, inicioDia, finDia);
 
-        if ("entrada".equalsIgnoreCase(tipo)) {
-            boolean yaTieneEntrada = registrosDia.stream().anyMatch(a -> "entrada".equalsIgnoreCase(a.getTipo()));
-            if (yaTieneEntrada) {
-                return ResponseEntity.badRequest().body(Map.of("error", "⚠️ Ya existe una entrada registrada para este día"));
-            }
+        if ("entrada".equalsIgnoreCase(tipo)
+                && registrosDia.stream().anyMatch(a -> "entrada".equalsIgnoreCase(a.getTipo()))) {
+            return ResponseEntity.badRequest().body(Map.of("error", "⚠️ Ya existe una entrada registrada para este día"));
         }
 
         if ("salida".equalsIgnoreCase(tipo)) {
@@ -73,8 +72,7 @@ public class AsistenciaController {
             if (!tieneEntrada) {
                 return ResponseEntity.badRequest().body(Map.of("error", "⚠️ No se puede registrar salida sin entrada previa"));
             }
-            boolean yaTieneSalida = registrosDia.stream().anyMatch(a -> "salida".equalsIgnoreCase(a.getTipo()));
-            if (yaTieneSalida) {
+            if (registrosDia.stream().anyMatch(a -> "salida".equalsIgnoreCase(a.getTipo()))) {
                 return ResponseEntity.badRequest().body(Map.of("error", "⚠️ Ya existe una salida registrada para este día"));
             }
         }
@@ -88,25 +86,21 @@ public class AsistenciaController {
         LocalDateTime ahora = saved.getFechaHora();
 
         if (turno != null) {
-            if ("entrada".equalsIgnoreCase(tipo)) {
-                if (ahora.toLocalTime().isAfter(turno.getHoraEntrada())) {
-                    alertaRepo.save(new Alerta(
-                        empleado.getId(),
-                        empleado.getNombre(),
-                        Alerta.TipoAlerta.TARDANZA,
-                        "Llegada tarde: " + ahora.toLocalTime()
-                    ));
-                }
+            if ("entrada".equalsIgnoreCase(tipo) && ahora.toLocalTime().isAfter(turno.getHoraEntrada())) {
+                alertaRepo.save(new Alerta(
+                    empleado.getId(),
+                    empleado.getNombre(),
+                    Alerta.TipoAlerta.TARDANZA,
+                    "Llegada tarde: " + ahora.toLocalTime()
+                ));
             }
-            if ("salida".equalsIgnoreCase(tipo)) {
-                if (ahora.toLocalTime().isBefore(turno.getHoraSalida())) {
-                    alertaRepo.save(new Alerta(
-                        empleado.getId(),
-                        empleado.getNombre(),
-                        Alerta.TipoAlerta.SALIDA_TEMPRANA,
-                        "Salida antes de tiempo: " + ahora.toLocalTime()
-                    ));
-                }
+            if ("salida".equalsIgnoreCase(tipo) && ahora.toLocalTime().isBefore(turno.getHoraSalida())) {
+                alertaRepo.save(new Alerta(
+                    empleado.getId(),
+                    empleado.getNombre(),
+                    Alerta.TipoAlerta.SALIDA_TEMPRANA,
+                    "Salida antes de tiempo: " + ahora.toLocalTime()
+                ));
             }
         }
 
@@ -115,17 +109,12 @@ public class AsistenciaController {
 
     // 🔵 Historial de asistencias por cédula
     @GetMapping("/{cedula}")
-    public ResponseEntity<?> historial(@PathVariable String cedula) {
+    public ResponseEntity<Object> historial(@PathVariable String cedula) {
         Optional<Empleado> empleadoOpt = empleadoRepo.findByCedula(cedula);
-
         if (empleadoOpt.isEmpty()) {
             return ResponseEntity.status(404).body(Map.of("error", "Empleado no encontrado"));
         }
-
-        Empleado empleado = empleadoOpt.get();
-        List<Asistencia> list = asistenciaRepo.findByEmpleado(empleado);
-
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(asistenciaRepo.findByEmpleado(empleadoOpt.get()));
     }
 
     // 🟠 Listar todas las asistencias (ordenadas por fechaHora descendente)

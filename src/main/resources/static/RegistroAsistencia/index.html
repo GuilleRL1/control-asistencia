@@ -6,235 +6,316 @@
   <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Control de Asistencia - Prototipo</title>
+  <title>Control de Asistencia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Control de Asistencia</h1>
+  <!-- Barra superior -->
+  <header class="topbar">
+    <button class="btn-icon" id="btn-sidebar-toggle" onclick="toggleSidebar()" title="Menú">☰</button>
+    <div class="brand"><span class="logo">📋</span> Control<span style="color:var(--primary)">Asistencia</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-right">
+      <span class="reloj" id="reloj"></span>
+      <button class="btn-icon" onclick="alternarTema()" title="Cambiar tema" id="btn-tema">🌙</button>
+      <span class="usuario-chip"><span class="avatar" id="usuario-avatar">?</span><span id="usuario-nombre">Invitado</span></span>
+      <button class="btn btn-ghost btn-sm" id="btn-sesion" onclick="alternarSesion()">Iniciar sesión</button>
+    </div>
   </header>
 
-  <!-- Página principal -->
-  <section class="section" id="inicio">
-    <h2>Bienvenido</h2>
-    <div class="botones">
-      <button class="btn-asistencia" onclick="navegar('registro')">Registrar Asistencia</button>
-      <button class="btn-admin" onclick="navegar('autenticacion')">Administración de Asistencia</button>
-    </div>
-  </section>
-
-  <!-- Registro de asistencia -->
-  <section class="section oculto" id="registro">
-      <h2>Registro de Asistencia</h2>
-
-      <div class="input-group">
-          <label for="cedula">Cédula del empleado</label>
-          <input type="text" id="cedula" placeholder="Ej: 123456789" required>
+  <div class="layout">
+    <!-- Menú lateral (solo administración) -->
+    <aside class="sidebar oculto" id="sidebar">
+      <div class="nav-label">Panel</div>
+      <button class="nav-item" data-seccion="dashboard" onclick="navegar('dashboard')"><span class="ico">📊</span> Dashboard</button>
+      <button class="nav-item" data-seccion="empleados" onclick="navegar('empleados')"><span class="ico">👥</span> Empleados</button>
+      <button class="nav-item" data-seccion="turnos" onclick="navegar('turnos')"><span class="ico">🕒</span> Turnos</button>
+      <button class="nav-item" data-seccion="alertas" onclick="navegar('alertas')"><span class="ico">🚨</span> Alertas</button>
+      <button class="nav-item" data-seccion="reportes" onclick="navegar('reportes')"><span class="ico">📈</span> Reportes</button>
+      <button class="nav-item" data-seccion="usuarios" onclick="navegar('usuarios')"><span class="ico">👤</span> Usuarios</button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" data-seccion="ajustes" onclick="navegar('ajustes')"><span class="ico">⚙️</span> Ajustes</button>
+      <div class="sidebar-foot">
+        <button class="nav-item" onclick="navegar('inicio')"><span class="ico">🏠</span> Volver al inicio</button>
+        <button class="nav-item" onclick="cerrarSesion()"><span class="ico">🚪</span> Cerrar sesión</button>
       </div>
+    </aside>
 
-      <div class="input-group">
-          <label for="metodo">Método de Registro</label>
-          <select id="metodo">
+    <main class="content">
+      <!-- Inicio -->
+      <section class="section" id="inicio">
+        <div class="hero">
+          <h1>Bienvenido a <span>Control Asistencia</span></h1>
+          <p>Gestiona la asistencia de tus empleados de forma sencilla, moderna y en tiempo real.</p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card" onclick="navegar('registro')">
+            <span class="ico">🕐</span>
+            <h3>Registrar Asistencia</h3>
+            <p>Marca entradas y salidas por cédula de forma rápida.</p>
+          </div>
+          <div class="feature-card" onclick="irAdmin()">
+            <span class="ico">🛡️</span>
+            <h3>Administración</h3>
+            <p>Dashboard, empleados, turnos, alertas, reportes y usuarios.</p>
+          </div>
+        </div>
+      </section>
 
+      <!-- Registro de asistencia -->
+      <section class="section oculto" id="registro">
+        <div class="page-head"><h2>🕐 Registro de Asistencia</h2></div>
+        <div class="card" style="max-width:560px">
+          <div class="input-group">
+            <label>Cédula del empleado</label>
+            <input type="text" id="cedula" placeholder="Ej: 123456789">
+          </div>
+          <div class="input-group">
+            <label>Método de registro</label>
+            <select id="metodo">
               <option>Reconocimiento Facial</option>
               <option>Huella Dactilar</option>
-              
-          </select>
-      </div>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Hora actual</label>
+            <input type="text" id="hora-actual" disabled>
+          </div>
+          <div style="display:flex;gap:.6rem">
+            <button class="btn btn-success btn-block" onclick="registrarAsistencia('entrada')">✅ Entrada</button>
+            <button class="btn btn-outline btn-block" onclick="registrarAsistencia('salida')">🚪 Salida</button>
+          </div>
+        </div>
+        <div class="card mt">
+          <h3>Últimos registros</h3>
+          <div id="registro-log"></div>
+        </div>
+      </section>
 
-      <div id="campo-extra" class="input-group oculto"></div>
+      <!-- Autenticación -->
+      <section class="section oculto" id="autenticacion">
+        <div class="auth-wrap">
+          <div class="card auth-card">
+            <div class="auth-logo">🔐</div>
+            <h2>Iniciar sesión</h2>
+            <p class="auth-sub">Accede al panel de administración</p>
+            <div class="input-group">
+              <label>Usuario</label>
+              <input type="text" id="usuario" placeholder="Tu usuario">
+            </div>
+            <div class="input-group">
+              <label>Contraseña</label>
+              <input type="password" id="contrasena" placeholder="Tu contraseña">
+            </div>
+            <button class="btn btn-primario btn-block" id="btn-login">Iniciar sesión</button>
+            <p class="auth-link"><a onclick="navegar('recuperar')">¿Olvidaste tu contraseña?</a></p>
+            <button class="btn btn-ghost btn-block mt" onclick="navegar('inicio')">⬅ Volver al inicio</button>
+          </div>
+        </div>
+      </section>
 
-      <div class="input-group">
-          <label>Hora actual</label>
-          <input type="text" id="hora-actual" disabled>
-      </div>
+      <!-- Recuperación de contraseña -->
+      <section class="section oculto" id="recuperar">
+        <div class="auth-wrap">
+          <div class="card auth-card">
+            <h2>Recuperar contraseña</h2>
+            <p class="auth-sub">Te enviaremos un enlace para restablecerla</p>
+            <div id="recuperar-paso1">
+              <div class="input-group">
+                <label>Email</label>
+                <input type="email" id="recuperar-email" placeholder="tucorreo@ejemplo.com">
+              </div>
+              <button class="btn btn-primario btn-block" onclick="solicitarRecuperacion()">Enviar enlace</button>
+            </div>
+            <div id="recuperar-resultado" class="card mt oculto"></div>
+            <div id="recuperar-paso2" class="oculto mt">
+              <div class="input-group">
+                <label>Token de recuperación</label>
+                <input type="text" id="recuperar-token" placeholder="Pega aquí el token">
+              </div>
+              <div class="input-group">
+                <label>Nueva contraseña</label>
+                <input type="password" id="recuperar-nueva">
+              </div>
+              <div class="input-group">
+                <label>Confirmar contraseña</label>
+                <input type="password" id="recuperar-confirmar">
+              </div>
+              <button class="btn btn-success btn-block" onclick="restablecerContrasena()">Restablecer contraseña</button>
+            </div>
+            <button class="btn btn-ghost btn-block mt" onclick="navegar('autenticacion')">⬅ Volver al inicio de sesión</button>
+          </div>
+        </div>
+      </section>
 
-      <button id="btn-entrada" class="success">Registrar Entrada</button>
-      <button id="btn-salida" class="success">Registrar Salida</button>
+      <!-- Dashboard -->
+      <section class="section oculto" id="dashboard">
+        <div class="page-head">
+          <h2>📊 Dashboard</h2>
+          <button class="btn btn-ghost btn-sm" onclick="cargarDashboard()">🔄 Actualizar</button>
+        </div>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="card mt">
+          <h3>Asistencia · últimos 7 días</h3>
+          <div class="chart" id="chart"></div>
+        </div>
+        <div class="card mt">
+          <h3>Alertas recientes</h3>
+          <div id="alertas-recientes"></div>
+        </div>
+      </section>
 
-      <div class="log" id="registro-log">
-          <strong>Registros del día:</strong>
-          <ul id="lista-asistencias"></ul>
-      </div>
+      <!-- Empleados -->
+      <section class="section oculto" id="empleados">
+        <div class="page-head">
+          <h2>👥 Empleados</h2>
+          <div style="display:flex;gap:.6rem">
+            <input type="text" id="empleados-busqueda" placeholder="Buscar por nombre o cédula" oninput="cargarEmpleados()" style="max-width:260px">
+            <button class="btn btn-primario" onclick="abrirModalEmpleado()">➕ Nuevo</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Cédula</th><th>Nombre</th><th>Teléfono</th><th>Acciones</th></tr></thead>
+              <tbody id="tabla-empleados"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-      <button class="btn-volver" onclick="navegar('inicio')">⬅ Volver al inicio</button>
-  </section>
+      <!-- Turnos -->
+      <section class="section oculto" id="turnos">
+        <div class="page-head"><h2>🕒 Gestión de Turnos</h2></div>
+        <div class="card">
+          <h3>Asignar turno</h3>
+          <div class="form-grid">
+            <div class="input-group"><label>Cédula del empleado</label><input type="text" id="turno-cedula"></div>
+            <div class="input-group"><label>Hora de entrada</label><input type="time" id="turno-entrada"></div>
+            <div class="input-group"><label>Hora de salida</label><input type="time" id="turno-salida"></div>
+          </div>
+          <div style="display:flex;gap:.6rem">
+            <button class="btn btn-primario" onclick="guardarTurnoPorCedula()">💾 Guardar turno</button>
+            <button class="btn btn-ghost" onclick="asignarTurnoMasivo()">👥 Asignar a todo el personal</button>
+          </div>
+        </div>
+        <div class="card mt">
+          <h3>Turnos registrados</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Cédula</th><th>Nombre</th><th>Entrada</th><th>Salida</th></tr></thead>
+              <tbody id="tabla-turnos"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
+      <!-- Alertas -->
+      <section class="section oculto" id="alertas">
+        <div class="page-head">
+          <h2>🚨 Alertas</h2>
+          <button class="btn btn-ghost btn-sm" onclick="cargarAlertas()">🔄 Actualizar</button>
+        </div>
+        <div id="lista-alertas"></div>
+      </section>
 
-  <!-- Autenticación -->
-  <section class="section oculto" id="autenticacion">
-    <h2>Pantalla de Autenticación</h2>
-    <div class="input-group">
-      <label for="usuario">Usuario</label>
-      <input type="text" id="usuario" placeholder="Ingresa tu usuario">
-    </div>
-    <div class="input-group">
-      <label for="contrasena">Contraseña</label>
-      <input type="password" id="contrasena" placeholder="Ingresa tu contraseña">
-    </div>
-    <button id="btn-login" class="success">Iniciar Sesión</button>
-    <button class="fingerprint-button" onclick="alert('Verificación de huella simulada')">Verificar con huella</button>
-    <p class="recuperar-link"><a onclick="navegar('recuperar')">¿Olvidaste tu contraseña?</a></p>
-    <button class="btn-volver" onclick="navegar('inicio')">⬅ Volver al inicio</button>
-  </section>
+      <!-- Reportes -->
+      <section class="section oculto" id="reportes">
+        <div class="page-head"><h2>📈 Reporte de Asistencias</h2></div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="input-group"><label>Fecha de inicio</label><input type="date" id="fechaInicio"></div>
+            <div class="input-group"><label>Fecha de fin</label><input type="date" id="fechaFin"></div>
+          </div>
+          <div style="display:flex;gap:.6rem">
+            <button class="btn btn-primario" onclick="cargarReporteAsistencias()">Generar reporte</button>
+            <button class="btn btn-ghost" onclick="exportarCSV()">⬇ Exportar CSV</button>
+          </div>
+          <p class="muted mt" id="resumen-reporte"></p>
+          <div class="table-wrap mt">
+            <table>
+              <thead><tr><th>Cédula</th><th>Nombre</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Horas</th></tr></thead>
+              <tbody id="tbody-reporte"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-  <!-- Recuperación de contraseña -->
-  <section class="section oculto" id="recuperar">
-    <h2>Recuperar Contraseña</h2>
+      <!-- Usuarios -->
+      <section class="section oculto" id="usuarios">
+        <div class="page-head">
+          <h2>👤 Usuarios del sistema</h2>
+          <button class="btn btn-primario" onclick="abrirModalUsuario()">➕ Nuevo usuario</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Usuario</th><th>Email</th><th>Acciones</th></tr></thead>
+              <tbody id="tabla-usuarios"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-    <!-- Paso 1: solicitar enlace de recuperación -->
-    <div id="recuperar-paso1">
-      <p>Ingresa el email de tu cuenta y te enviaremos un enlace para restablecer tu contraseña.</p>
-      <div class="input-group">
-        <label for="recuperar-email">Email</label>
-        <input type="email" id="recuperar-email" placeholder="tucorreo@ejemplo.com">
-      </div>
-      <button class="success" onclick="solicitarRecuperacion()">Enviar enlace de recuperación</button>
-    </div>
+      <!-- Historial / perfil del empleado -->
+      <section class="section oculto" id="historial">
+        <div class="page-head">
+          <h2>👁️ Perfil del Empleado</h2>
+          <button class="btn btn-ghost btn-sm" onclick="navegar('empleados')">⬅ Volver</button>
+        </div>
+        <div id="historial-contenido"></div>
+      </section>
 
-    <!-- Resultado de la solicitud (email simulado) -->
-    <div id="recuperar-resultado" class="log oculto"></div>
-
-    <!-- Paso 2: restablecer con token -->
-    <div id="recuperar-paso2" class="oculto">
-      <div class="input-group">
-        <label for="recuperar-token">Código / Token de recuperación</label>
-        <input type="text" id="recuperar-token" placeholder="Pega aquí el token recibido">
-      </div>
-      <div class="input-group">
-        <label for="recuperar-nueva">Nueva contraseña</label>
-        <input type="password" id="recuperar-nueva" placeholder="••••••">
-      </div>
-      <div class="input-group">
-        <label for="recuperar-confirmar">Confirmar nueva contraseña</label>
-        <input type="password" id="recuperar-confirmar" placeholder="••••••">
-      </div>
-      <button class="success" onclick="restablecerContrasena()">Restablecer contraseña</button>
-    </div>
-
-    <button class="btn-volver" onclick="navegar('autenticacion')">⬅ Volver al inicio de sesión</button>
-  </section>
-
-  <!-- Errores -->
-  <section class="section oculto" id="errores">
-    <h2>Reporte de Errores</h2>
-    <div class="log">
-      <p><strong>Fecha:</strong> 15/06/2025<br><strong>Error:</strong> Fallo de conexión a base de datos</p>
-      <p><strong>Fecha:</strong> 14/06/2025<br><strong>Error:</strong> Usuario no encontrado</p>
-    </div>
-    <button class="error">Descargar Reporte</button>
-    <button class="btn-volver" onclick="navegar('administracion')">⬅ Volver al Menú</button>
-  </section>
-
-  <!-- REPORTE DE ASISTENCIA -->
-
-  <section class="section oculto" id="reportes">
-  <h2>Reporte de Asistencias</h2>
-<button class="btn-admin" onclick="navegar('administracion')">⬅ Volver</button>
-  <!-- Filtros -->
-  <div class="input-group">
-    <label for="fechaInicio">Fecha inicio</label>
-    <input type="date" id="fechaInicio">
+      <!-- Ajustes -->
+      <section class="section oculto" id="ajustes">
+        <div class="page-head"><h2>⚙️ Ajustes</h2></div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Tema del sistema</label>
+              <select id="tema">
+                <option value="claro">Claro</option>
+                <option value="oscuro">Oscuro</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Formato de hora</label>
+              <select id="formatoHora">
+                <option value="12">12 horas</option>
+                <option value="24">24 horas</option>
+              </select>
+            </div>
+          </div>
+          <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+          <h3>Cambiar contraseña</h3>
+          <div class="form-grid">
+            <div class="input-group"><label>Contraseña actual</label><input type="password" id="pass-actual"></div>
+            <div class="input-group"><label>Nueva contraseña</label><input type="password" id="pass-nueva"></div>
+            <div class="input-group"><label>Confirmar contraseña</label><input type="password" id="pass-confirmar"></div>
+          </div>
+          <button class="btn btn-primario" onclick="guardarAjustes()">Guardar cambios</button>
+        </div>
+      </section>
+    </main>
   </div>
-  <div class="input-group">
-    <label for="fechaFin">Fecha fin</label>
-    <input type="date" id="fechaFin">
-  </div>
 
-  <button class="success" onclick="cargarReporteAsistencias()">Generar Reporte</button>
-  <button class="btn-admin" onclick="exportarCSV()">⬇ Exportar CSV</button>
-
-  <!-- Tabla -->
-  <table border="1" style="margin-top:1rem; width:100%;">
-    <thead>
-      <tr>
-        <th>Cédula</th>
-        <th>Nombre</th>
-        <th>Fecha</th>
-        <th>Hora Entrada</th>
-        <th>Hora Salida</th>
-        <th>Horas Trabajadas</th>
-      </tr>
-    </thead>
-    <tbody id="tbody-reporte"></tbody>
-  </table>
-</section>
-
-  <!-- Administración -->
-  <section class="section oculto" id="administracion">
-  <h2>Panel de Administración</h2>
-
-  <div class="admin-layout">
-    <!-- Menú lateral izquierdo -->
-    <ul id="menu-admin" class="menu-lateral">
-        <li onclick="mostrarAdminContenido('turnos')">🕒 Gestión de Turnos</li>
-        <li onclick="mostrarAdminContenido('alertas')">🚨 Alertas</li>
-      <li onclick="mostrarAdminContenido('registro')">📝 Registro de Asistencia</li>
-      <li onclick="mostrarAdminContenido('errores')">⚠️ Reporte de Errores</li>
-      <li onclick="abrirGestionUsuarios()">👥 Gestión de Usuarios</li>
-      <li onclick="navegar('reportes')">📊 Reporte de Asistencias</li>
-      <li onclick="mostrarAdminContenido('ajustes')">🔧 Ajustes del Sistema</li>
-      
-      <li onclick="cerrarSesion()">🚪 Cerrar Sesión</li>
-    </ul>
-
-    <!-- Contenido derecho dinámico -->
-    <div id="contenido-admin" class="contenido-lateral">
-      <p>Selecciona una opción del menú para comenzar.</p>
+  <!-- Modal -->
+  <div class="modal-overlay oculto" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-titulo"></h3>
+        <button class="modal-close" onclick="cerrarModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
     </div>
   </div>
-</section>
 
-<input type="text" id="cedula-empleado" value="..." readonly>
-
-  <!-- Ajustes -->
-  <section class="section oculto" id="ajustes">
-      <h2>Configuración y Ajustes</h2>
-
-      <!-- Tema -->
-      <div class="input-group">
-          <label for="tema">Tema del sistema</label>
-          <select id="tema">
-              <option value="claro">Claro</option>
-              <option value="oscuro">Oscuro</option>
-          </select>
-      </div>
-
-      <!-- Formato de hora -->
-      <div class="input-group">
-          <label for="formatoHora">Formato de Hora</label>
-          <select id="formatoHora">
-              <option value="12">12 horas</option>
-              <option value="24">24 horas</option>
-          </select>
-      </div>
-
-      <!-- Cambiar contraseña -->
-      <div class="input-group">
-          <label for="pass-actual">Contraseña actual</label>
-          <input type="password" id="pass-actual" placeholder="••••••">
-      </div>
-      <div class="input-group">
-          <label for="pass-nueva">Nueva contraseña</label>
-          <input type="password" id="pass-nueva" placeholder="••••••">
-      </div>
-      <div class="input-group">
-          <label for="pass-confirmar">Confirmar nueva contraseña</label>
-          <input type="password" id="pass-confirmar" placeholder="••••••">
-      </div>
-
-      <!-- Botones -->
-      <button class="success" onclick="guardarAjustes()">Guardar Cambios</button>
-      <button class="btn-volver" onclick="navegar('administracion')">⬅ Volver al Menú</button>
-      <button class="danger" onclick="logout()">Cerrar Sesión</button>
-  </section>
-
-  <footer>
-    &copy; 2025 Sistema de Asistencia. Todos los derechos reservados.
-  </footer>
+  <!-- Toasts -->
+  <div class="toast-container" id="toasts"></div>
 
   <script src="script.js" defer></script>
 </body>
 </html>
-
-

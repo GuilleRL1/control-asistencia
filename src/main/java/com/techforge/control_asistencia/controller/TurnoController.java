@@ -64,7 +64,7 @@ public class TurnoController {
 
     // Crear/actualizar turno por cédula (solo si el empleado existe)
     @PostMapping
-    public ResponseEntity<?> crearTurnoPorCedula(@RequestBody TurnoDTO dto) {
+    public ResponseEntity<Object> crearTurnoPorCedula(@RequestBody TurnoDTO dto) {
         if (dto.getCedula() == null || dto.getCedula().isBlank()
                 || dto.getHoraEntrada() == null || dto.getHoraSalida() == null) {
             return ResponseEntity.badRequest().body("Datos incompletos: cédula, horaEntrada, horaSalida");
@@ -89,7 +89,7 @@ public class TurnoController {
 
     // Asignar/actualizar el mismo turno a todo el personal existente
     @PostMapping("/masivo")
-    public ResponseEntity<?> asignarTurnoMasivo(@RequestBody TurnoDTO dto) {
+    public ResponseEntity<Object> asignarTurnoMasivo(@RequestBody TurnoDTO dto) {
         if (dto.getHoraEntrada() == null || dto.getHoraSalida() == null) {
             return ResponseEntity.badRequest().body("Debes definir hora de entrada y salida");
         }

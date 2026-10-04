@@ -1,6 +1,7 @@
 package com.techforge.control_asistencia.controller;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,22 +41,21 @@ public class AlertaController {
 
     // ✅ Crear una alerta manualmente
     @PostMapping
-    public ResponseEntity<?> crearAlerta(@RequestBody Alerta alerta) {
+    public ResponseEntity<Object> crearAlerta(@RequestBody Alerta alerta) {
         if (alerta.getEmpleadoId() == null || alerta.getNombreEmpleado() == null || alerta.getDetalle() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Debes indicar empleadoId, nombreEmpleado y detalle"));
         }
-        alerta.setFecha(LocalDateTime.now());
+        alerta.setFecha(LocalDateTime.now(ZoneId.systemDefault()));
         return ResponseEntity.ok(alertaRepository.save(alerta));
     }
 
     // ✅ Obtener alertas por ID de empleado
     @GetMapping("/empleado/{id}")
-    public ResponseEntity<?> getAlertasPorEmpleado(@PathVariable Long id) {
+    public ResponseEntity<Object> getAlertasPorEmpleado(@PathVariable Long id) {
         Optional<Empleado> empleadoOpt = empleadoRepository.findById(id);
         if (empleadoOpt.isEmpty()) {
             return ResponseEntity.status(404).body(Map.of("error", "Empleado no encontrado"));
         }
-        List<Alerta> alertas = alertaRepository.findByEmpleadoId(id);
-        return ResponseEntity.ok(alertas);
+        return ResponseEntity.ok(alertaRepository.findByEmpleadoId(id));
     }
 }
